@@ -2,11 +2,11 @@ const joi = require("joi");
 
 const schemaPost = joi.object({
   name: joi.string().min(3).required(),
-  email: joi.string().email().required(),
+  email: joi.string().email(),
   phone: joi
     .string()
-    .pattern(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/)
-    .required(),
+    .pattern(/^[+]?[(]?[0-9]{3}[)]?[-s.]?[0-9]{3}[-s.]?[0-9]{4,6}$/),
+  favorite: joi.boolean(),
 });
 
 const schemaPut = joi.object({
