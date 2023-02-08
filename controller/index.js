@@ -1,8 +1,8 @@
-const service = require("../service");
+const Contact = require("../service/schemas/contact");
 
-const get = async (req, res, next) => {
+const getContacts = async (req, res, next) => {
   try {
-    const results = await service.getAllcontacts();
+    const results = await Contact.find();
     res.json({
       status: "success",
       code: 200,
@@ -16,10 +16,10 @@ const get = async (req, res, next) => {
   }
 };
 
-const getById = async (req, res, next) => {
+const getContactById = async (req, res, next) => {
   const { id } = req.params;
   try {
-    const result = await service.getContactById(id);
+    const result = await Contact.findOne({ _id: id });
     if (result) {
       res.json({
         status: "success",
@@ -40,15 +40,10 @@ const getById = async (req, res, next) => {
   }
 };
 
-const create = async (req, res, next) => {
+const createContact = async (req, res, next) => {
   const { name, email, phone, favorite = false } = req.body;
   try {
-    const result = await service.createContact({
-      name,
-      email,
-      phone,
-      favorite,
-    });
+    const result = await Contact.create({ name, email, phone, favorite });
 
     res.status(201).json({
       status: "success",
@@ -61,7 +56,7 @@ const create = async (req, res, next) => {
   }
 };
 
-const update = async (req, res, next) => {
+const updateContact = async (req, res, next) => {
   const { id } = req.params;
   const { name, email, phone } = req.body;
   try {
@@ -72,7 +67,11 @@ const update = async (req, res, next) => {
         data: { message: "Missing fields" },
       });
     }
-    const result = await service.updateContact(id, { name, email, phone });
+    const result = await Contact.findByIdAndUpdate(
+      { _id: id },
+      { name, email, phone },
+      { new: true }
+    );
     if (result) {
       res.json({
         status: "success",
@@ -93,7 +92,7 @@ const update = async (req, res, next) => {
   }
 };
 
-const updateFavorite = async (req, res, next) => {
+const updateFavoriteContact = async (req, res, next) => {
   const { id } = req.params;
   const { favorite } = req.body;
 
@@ -105,7 +104,11 @@ const updateFavorite = async (req, res, next) => {
         data: { message: "Missing field favorite" },
       });
     }
-    const result = await service.updateContact(id, { favorite });
+    const result = await Contact.findByIdAndUpdate(
+      { _id: id },
+      { favorite },
+      { new: true }
+    );
     if (result) {
       res.json({
         status: "success",
@@ -126,11 +129,11 @@ const updateFavorite = async (req, res, next) => {
   }
 };
 
-const remove = async (req, res, next) => {
+const removeContact = async (req, res, next) => {
   const { id } = req.params;
 
   try {
-    const result = await service.removeContact(id);
+    const result = await Contact.findByIdAndRemove({ _id: id });
     if (result) {
       res.json({
         status: "success",
@@ -152,10 +155,10 @@ const remove = async (req, res, next) => {
 };
 
 module.exports = {
-  get,
-  getById,
-  create,
-  update,
-  updateFavorite,
-  remove,
+  getContacts,
+  getContactById,
+  createContact,
+  updateContact,
+  updateFavoriteContact,
+  removeContact,
 };
