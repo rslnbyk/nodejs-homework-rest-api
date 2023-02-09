@@ -13,15 +13,16 @@ app.use(logger(formatsLogger));
 app.use(cors());
 app.use(express.json());
 
-const contactsRouter = require("./router");
-app.use("/api/contacts", contactsRouter);
+require("./config/config-passport");
+
+const router = require("./router/index");
+app.use("/api", router);
 
 app.use((_, res, __) => {
   res.status(404).json({
     status: "error",
     code: 404,
-    message: "Use api on routes: /api/contacts",
-    data: "Not found",
+    message: "Not found",
   });
 });
 
@@ -31,7 +32,6 @@ app.use((err, _, res, __) => {
     status: "fail",
     code: 500,
     message: err.message,
-    data: "Internal Server Error",
   });
 });
 
