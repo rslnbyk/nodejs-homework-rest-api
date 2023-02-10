@@ -28,20 +28,14 @@ const schemaLoginUser = joi.object({
   password: joi.string().required(),
 });
 
-const validateBody = (schema) => {
-  return (req, res, next) => {
-    const { error } = schema.validate(req.body);
-    if (error) {
-      return next(error);
-    }
-    next(error);
-  };
-};
+const SchemaFavoriteContact = joi.object({
+  favorite: joi.boolean().required(),
+});
 
 module.exports = {
   schemaPostContact,
   schemaPutContact,
   schemaPostUser,
   schemaLoginUser,
-  validateBody,
+  SchemaFavoriteContact,
 };

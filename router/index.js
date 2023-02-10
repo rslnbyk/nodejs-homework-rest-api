@@ -15,41 +15,40 @@ const {
   logOutUser,
   currentUser,
 } = require("../controller/users");
-const validation = require("./validation");
+const {
+  schemaPostContact,
+  schemaPutContact,
+  schemaPostUser,
+  schemaLoginUser,
+  SchemaFavoriteContact,
+} = require("../utils/validation/validationSchemas");
+const { validateBody } = require("../utils/validation/validateBody");
 
 router.get("/contacts", auth, getContacts);
 
 router.get("/contacts/:id", auth, getContactById);
 
-router.post(
-  "/contacts",
-  auth,
-  validation.validateBody(validation.schemaPostContact),
-  createContact
-);
+router.post("/contacts", auth, validateBody(schemaPostContact), createContact);
 
 router.put(
   "/contacts/:id",
   auth,
-  validation.validateBody(validation.schemaPutContact),
+  validateBody(schemaPutContact),
   updateContact
 );
 
-router.patch("/contacts/:id/favorite", auth, updateFavoriteContact);
+router.patch(
+  "/contacts/:id/favorite",
+  auth,
+  validateBody(SchemaFavoriteContact),
+  updateFavoriteContact
+);
 
 router.delete("/contacts/:id", auth, removeContact);
 
-router.post(
-  "/users/signup",
-  validation.validateBody(validation.schemaPostUser),
-  singUpUser
-);
+router.post("/users/signup", validateBody(schemaPostUser), singUpUser);
 
-router.post(
-  "/users/login",
-  validation.validateBody(validation.schemaLoginUser),
-  loginUser
-);
+router.post("/users/login", validateBody(schemaLoginUser), loginUser);
 
 router.get("/users/logout", auth, logOutUser);
 

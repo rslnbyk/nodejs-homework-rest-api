@@ -69,13 +69,6 @@ const updateContact = async (req, res, next) => {
   const { id: owner } = req.user;
   const { name, email, phone } = req.body;
   try {
-    if (!name && !email && !phone) {
-      res.status(400).json({
-        status: "error",
-        code: 400,
-        message: "Missing fields",
-      });
-    }
     const result = await Contact.findOneAndUpdate(
       { _id: id, owner },
       { name, email, phone },
@@ -106,13 +99,6 @@ const updateFavoriteContact = async (req, res, next) => {
   const { id: owner } = req.user;
 
   try {
-    if (!req.body || !favorite) {
-      res.status(400).json({
-        status: "error",
-        code: 400,
-        message: "Missing field favorite",
-      });
-    }
     const result = await Contact.findOneAndUpdate(
       { _id: id, owner },
       { favorite },
