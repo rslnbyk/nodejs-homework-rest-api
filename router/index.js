@@ -1,5 +1,6 @@
 const express = require("express");
 const router = express.Router();
+const upload = require("../controller/upload");
 const {
   getContacts,
   getContactById,
@@ -14,6 +15,7 @@ const {
   loginUser,
   logOutUser,
   currentUser,
+  updateAvatar,
 } = require("../controller/users");
 const {
   schemaPostContact,
@@ -53,5 +55,7 @@ router.post("/users/login", validateBody(schemaLoginUser), loginUser);
 router.get("/users/logout", auth, logOutUser);
 
 router.get("/users/current", auth, currentUser);
+
+router.patch("/users/avatars", auth, upload.single("avatar"), updateAvatar);
 
 module.exports = router;
