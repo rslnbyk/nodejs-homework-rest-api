@@ -2,6 +2,10 @@ const User = require("../service/schemas/user");
 const secret = process.env.SECRET;
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
+const gravatar = require("gravatar");
+const fs = require("fs").promises;
+const path = require("node:path");
+const formatImg = require("../utils/formatImg");
 
 const auth = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
@@ -28,14 +32,19 @@ const singUpUser = async (req, res, next) => {
     });
   }
   try {
-    const newUser = new User({ email, subscription });
+    const avatarUrl = gravatar.url(email);
+    const newUser = new User({ email, subscription, avatarUrl });
     newUser.setPassword(password);
     await newUser.save();
     res.status(201).json({
       status: "success",
       code: 201,
       data: {
-        user: { email: newUser.email, subscription: newUser.subscription },
+        user: {
+          email: newUser.email,
+          subscription: newUser.subscription,
+          avatarUrl: newUser.avatarUrl,
+        },
       },
     });
   } catch (error) {
@@ -74,6 +83,7 @@ const loginUser = async (req, res, next) => {
       user: {
         email: updatedUser.email,
         subscription: updatedUser.subscription,
+        avatarUrl: updatedUser.avatarUrl,
       },
     },
   });
@@ -99,10 +109,47 @@ const currentUser = async (req, res, next) => {
   });
 };
 
+const updateAvatar = async (req, res, next) => {
+  const userId = req.user._id.toString();
+  if (!req.file) {
+    return res.status(400).json({
+      status: "error",
+      code: 400,
+      message: "No file attached",
+    });
+  }
+  const { path: tempName } = req.file;
+  const uploadDir = path.join(process.cwd(), "./public/avatars");
+
+  try {
+    const fileName = path.join(uploadDir, `${userId}.jpg`);
+    await formatImg(tempName);
+
+    const avatarUrl = `http://localhost:3000/api/users/avatars/${userId}.jpg`;
+    await User.findByIdAndUpdate(
+      { _id: userId },
+      {
+        avatarUrl,
+      }
+    );
+    await fs.rename(tempName, fileName);
+
+    res.status(200).json({
+      status: "success",
+      code: 200,
+      data: { avatarUrl },
+    });
+  } catch (error) {
+    fs.unlink(tempName);
+    next(error);
+  }
+};
+
 module.exports = {
   auth,
   singUpUser,
   loginUser,
   logOutUser,
   currentUser,
+  updateAvatar,
 };
