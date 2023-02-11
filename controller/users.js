@@ -1,11 +1,14 @@
 const User = require("../service/schemas/user");
 const secret = process.env.SECRET;
+const sgToken = process.env.SENDGRID_TOKEN;
 const jwt = require("jsonwebtoken");
 const passport = require("passport");
 const gravatar = require("gravatar");
 const fs = require("fs").promises;
 const path = require("node:path");
 const formatImg = require("../utils/formatImg");
+const nanoid = require("nanoid");
+const sgMail = require("@sendgrid/mail");
 
 const auth = (req, res, next) => {
   passport.authenticate("jwt", { session: false }, (err, user) => {
@@ -33,9 +36,26 @@ const singUpUser = async (req, res, next) => {
   }
   try {
     const avatarUrl = gravatar.url(email);
-    const newUser = new User({ email, subscription, avatarUrl });
+    const verificationToken = nanoid();
+    const newUser = new User({
+      email,
+      subscription,
+      avatarUrl,
+      verificationToken,
+      verify: false,
+    });
     newUser.setPassword(password);
     await newUser.save();
+
+    sgMail.setApiKey(sgToken);
+    const msg = {
+      to: email,
+      from: "rslnbyk@gmail.com",
+      subject: `Email verification`,
+      text: `http://localhost:3000/api/users/verify/${verificationToken}`,
+    };
+    await sgMail.send(msg);
+
     res.status(201).json({
       status: "success",
       code: 201,
@@ -55,6 +75,14 @@ const singUpUser = async (req, res, next) => {
 const loginUser = async (req, res, next) => {
   const { email, password } = req.body;
   const user = await User.findOne({ email });
+
+  if (!user.verify) {
+    return res.status(401).json({
+      status: "error",
+      code: 401,
+      message: "Email is not verified",
+    });
+  }
 
   if (!user || !user.validPassword(password)) {
     return res.status(401).json({
@@ -145,6 +173,65 @@ const updateAvatar = async (req, res, next) => {
   }
 };
 
+const verifyUser = async (req, res, next) => {
+  const { verificationToken } = req.params;
+  const user = await User.findOne({ verificationToken });
+  if (!user) {
+    return res.status(404).json({
+      status: "error",
+      code: 404,
+      message: "User not found",
+    });
+  }
+
+  await User.findOneAndUpdate(
+    { verificationToken },
+    { verificationToken: null, verify: true }
+  );
+
+  return res.status(200).json({
+    status: "success",
+    code: 200,
+    message: "Verification successful",
+  });
+};
+
+const verifyUserAgain = async (req, res, next) => {
+  const { email } = req.body;
+  const user = await User.findOne({ email });
+  if (!user) {
+    return res.status(401).json({
+      status: "error",
+      code: 401,
+      message: "Incorrect email",
+    });
+  }
+
+  const { verify, verificationToken } = user;
+  if (verify) {
+    return res.status(400).json({
+      status: "error",
+      code: 400,
+      message: "Verification has already been passed",
+    });
+  }
+
+  sgMail.setApiKey(sgToken);
+  const msg = {
+    to: email,
+    from: "rslnbyk@gmail.com",
+    subject: `Email verification`,
+    text: `http://localhost:3000/api/users/verify/${verificationToken}`,
+  };
+  await sgMail.send(msg);
+
+  return res.status(200).json({
+    status: "success",
+    code: 200,
+    message: "Verification email sent",
+  });
+};
+
 module.exports = {
   auth,
   singUpUser,
@@ -152,4 +239,6 @@ module.exports = {
   logOutUser,
   currentUser,
   updateAvatar,
+  verifyUser,
+  verifyUserAgain,
 };

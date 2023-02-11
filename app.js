@@ -2,7 +2,6 @@ const express = require("express");
 const logger = require("morgan");
 const cors = require("cors");
 const mongoose = require("mongoose");
-const path = require("node:path");
 
 require("dotenv").config();
 
@@ -11,7 +10,7 @@ const app = express();
 const formatsLogger = app.get("env") === "development" ? "dev" : "short";
 
 app.use(logger(formatsLogger));
-app.use(express.static(path.join(process.cwd(), "./public")));
+app.use(express.static("public"));
 app.use(cors());
 app.use(express.json());
 
