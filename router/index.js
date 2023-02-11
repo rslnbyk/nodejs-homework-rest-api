@@ -16,6 +16,8 @@ const {
   logOutUser,
   currentUser,
   updateAvatar,
+  verifyUser,
+  verifyUserAgain,
 } = require("../controller/users");
 const {
   schemaPostContact,
@@ -23,6 +25,7 @@ const {
   schemaPostUser,
   schemaLoginUser,
   SchemaFavoriteContact,
+  schemaVerifyEmail,
 } = require("../utils/validation/validationSchemas");
 const { validateBody } = require("../utils/validation/validateBody");
 
@@ -57,5 +60,9 @@ router.get("/users/logout", auth, logOutUser);
 router.get("/users/current", auth, currentUser);
 
 router.patch("/users/avatars", auth, upload.single("avatar"), updateAvatar);
+
+router.get("/users/verify/:verificationToken", verifyUser);
+
+router.post("/users/verify", validateBody(schemaVerifyEmail), verifyUserAgain);
 
 module.exports = router;

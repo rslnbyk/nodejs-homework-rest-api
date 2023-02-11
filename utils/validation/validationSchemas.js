@@ -32,10 +32,15 @@ const SchemaFavoriteContact = joi.object({
   favorite: joi.boolean().required(),
 });
 
+const schemaVerifyEmail = joi.object({
+  email: joi.string().email().required(),
+});
+
 module.exports = {
   schemaPostContact,
   schemaPutContact,
   schemaPostUser,
   schemaLoginUser,
   SchemaFavoriteContact,
+  schemaVerifyEmail,
 };
